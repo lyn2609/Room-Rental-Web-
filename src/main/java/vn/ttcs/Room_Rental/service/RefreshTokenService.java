@@ -36,7 +36,7 @@ public class RefreshTokenService {
 
     public RefreshToken verify(String token) {
         RefreshToken rt = repo.findByToken(token)
-            .orElseThrow(() -> new IllegalArgumentException("Refresh token không hợp lệ"));
+                .orElseThrow(() -> new IllegalArgumentException("Refresh token không hợp lệ"));
 
         if (rt.isRevoked())
             throw new IllegalArgumentException("Refresh token đã bị thu hồi");

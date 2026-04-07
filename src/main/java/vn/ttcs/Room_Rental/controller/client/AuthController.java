@@ -34,9 +34,9 @@ public class AuthController {
             @Valid @RequestBody RegisterRequestDTO dto) {
         authService.register(dto);
         return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(ApiResponse.ok(
-                "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản."));
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(
+                        "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản."));
     }
 
 
@@ -73,7 +73,7 @@ public class AuthController {
             @Valid @RequestBody ForgotPasswordRequestDTO dto) {
         authService.sendResetOtp(dto);
         return ResponseEntity.ok(ApiResponse.ok(
-            "Mã OTP đã được gửi đến email " + dto.getEmail()));
+                "Mã OTP đã được gửi đến email " + dto.getEmail()));
     }
 
     @PostMapping("/reset-password")
