@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -20,6 +22,11 @@ public class Service {
     private Double defaultPrice;
 
     private Boolean isMetered = false;
+
+    @ManyToOne
+    @JoinColumn(name = "room_id")
+    private Room room;
+
 
     public Integer getId() {
         return id;
@@ -61,5 +68,12 @@ public class Service {
         this.isMetered = isMetered;
     }
 
+    // --- GETTER/SETTER CHO ROOM ---
+    public Room getRoom() {
+        return room;
+    }
 
+    public void setRoom(Room room) {
+        this.room = room;
+    }
 }

@@ -24,15 +24,15 @@ public class EmailService {
     @Async
     public void sendVerificationOtp(String toEmail, String otp) {
         sendOtpEmail(toEmail, otp,
-            "Xác nhận tài khoản - Phòng Trọ",
-            "xác nhận tài khoản");
+                "Xác nhận tài khoản - Phòng Trọ",
+                "xác nhận tài khoản");
     }
 
     @Async
     public void sendResetPasswordOtp(String toEmail, String otp) {
         sendOtpEmail(toEmail, otp,
-            "Đặt lại mật khẩu - Phòng Trọ",
-            "đặt lại mật khẩu");
+                "Đặt lại mật khẩu - Phòng Trọ",
+                "đặt lại mật khẩu");
     }
 
     private void sendOtpEmail(String toEmail, String otp, String subject, String purpose) {

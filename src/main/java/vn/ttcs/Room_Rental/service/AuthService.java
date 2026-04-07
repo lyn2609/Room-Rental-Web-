@@ -34,13 +34,13 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public AuthService(UserRepository userRepository,
-            RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder,
-            OtpService otpService,
-            EmailService emailService,
-            JwtUtil jwtUtil,
-            RefreshTokenService refreshTokenService,
-            AuthenticationManager authenticationManager) {
+                       RoleRepository roleRepository,
+                       PasswordEncoder passwordEncoder,
+                       OtpService otpService,
+                       EmailService emailService,
+                       JwtUtil jwtUtil,
+                       RefreshTokenService refreshTokenService,
+                       AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -73,15 +73,15 @@ public class AuthService {
         user.setPhone(dto.getPhone());
         user.setEmail(dto.getEmail());
         user.setCccd(dto.getCccd());
-        user.setUsername(dto.getPhone()); 
+        user.setUsername(dto.getPhone());
         user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         user.setRole(clientRole);
-        user.setStatus("INACTIVE"); 
+        user.setStatus("INACTIVE");
         user.setEmailVerified(false);
 
         userRepository.save(user);
 
-        
+
         String otp = otpService.generateAndSave(dto.getEmail(), "VERIFY");
         emailService.sendVerificationOtp(dto.getEmail(), otp);
     }
@@ -157,7 +157,7 @@ public class AuthService {
 
         return new TokenResponseDTO(
                 newAccessToken,
-                rt.getToken(), 
+                rt.getToken(),
                 jwtUtil.getAccessTokenExpiryMs() / 1000);
     }
 
