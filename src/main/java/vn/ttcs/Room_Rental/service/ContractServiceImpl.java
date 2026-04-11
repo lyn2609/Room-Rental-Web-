@@ -1,6 +1,5 @@
 package vn.ttcs.Room_Rental.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.ttcs.Room_Rental.domain.Contract;
@@ -16,13 +15,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
+// @RequiredArgsConstructor
 public class ContractServiceImpl implements ContractService {
 
     private final ContractRepository contractRepository;
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
     private final RoommateRepository roommateRepository;
+
+    public ContractServiceImpl(ContractRepository contractRepository, RoomRepository roomRepository, UserRepository userRepository, RoommateRepository roommateRepository) {
+        this.contractRepository = contractRepository;
+        this.roomRepository = roomRepository;
+        this.userRepository = userRepository;
+        this.roommateRepository = roommateRepository;
+    }
+
 
     @Override
     @Transactional

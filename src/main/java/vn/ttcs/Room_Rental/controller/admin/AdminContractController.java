@@ -1,7 +1,6 @@
 package vn.ttcs.Room_Rental.controller.admin;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +11,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/contracts")
-@RequiredArgsConstructor
+// @RequiredArgsConstructor
 public class AdminContractController {
 
     private final ContractService contractService;
+    public AdminContractController(ContractService contractService) {
+        this.contractService = contractService;
+    }
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> createContract(

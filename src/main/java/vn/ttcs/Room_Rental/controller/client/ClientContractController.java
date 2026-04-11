@@ -14,12 +14,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/client/contracts")
-@RequiredArgsConstructor
+// @RequiredArgsConstructor
 public class ClientContractController {
 
     private final ContractService contractService;
-
-    // Lấy danh sách hợp đồng của tôi (Đã viết ở Service trước đó)
+    public ClientContractController(ContractService contractService) {
+        this.contractService = contractService;
+    }
+    
     @GetMapping
     public ResponseEntity<ApiResponse<List<ContractResponseDTO>>> getMyContracts() {
         List<ContractResponseDTO> contracts = contractService.getMyContracts();

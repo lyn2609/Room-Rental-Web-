@@ -26,11 +26,11 @@ public class Ticket {
 
     private String title;
 
-    private String category = "MAINTENANCE"; // MAINTENANCE, TECHNICAL, COMPLAINT, OTHER
+    private String category = "MAINTENANCE"; 
 
-    private String priority = "NORMAL"; // NORMAL, URGENT
+    private String priority = "NORMAL"; 
 
-    private String status = "PENDING"; // PENDING, IN_PROGRESS, COMPLETED
+    private String status = "PENDING"; 
 
     private String description;
 
@@ -101,7 +101,4 @@ public class Ticket {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
-
-
 }
