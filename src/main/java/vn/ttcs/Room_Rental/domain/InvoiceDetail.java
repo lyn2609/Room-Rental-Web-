@@ -21,12 +21,17 @@ public class InvoiceDetail {
     private Invoice invoice;
 
     @ManyToOne
-    @JoinColumn(name = "service_id", nullable = false)
+    @JoinColumn(name = "service_id", nullable = true)
     private Service service;
+
+    // Mô tả cho các dòng không gắn với Service (ví dụ: Tiền phòng)
+    private String description;
 
     private Integer oldIndex = 0;
 
     private Integer newIndex = 0;
+
+    private Double unitPrice;
 
     private Double subtotal;
 
@@ -54,6 +59,14 @@ public class InvoiceDetail {
         this.service = service;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Integer getOldIndex() {
         return oldIndex;
     }
@@ -68,6 +81,14 @@ public class InvoiceDetail {
 
     public void setNewIndex(Integer newIndex) {
         this.newIndex = newIndex;
+    }
+
+    public Double getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(Double unitPrice) {
+        this.unitPrice = unitPrice;
     }
 
     public Double getSubtotal() {

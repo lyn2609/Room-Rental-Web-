@@ -16,9 +16,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "invoices")
+@Table(
+    name = "invoices",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_invoice_contract_month",
+        columnNames = {"contract_id", "month"}
+    )
+)
 
 public class Invoice {
     @Id

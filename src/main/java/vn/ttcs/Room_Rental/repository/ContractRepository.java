@@ -1,6 +1,6 @@
 package vn.ttcs.Room_Rental.repository;
 
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -20,4 +20,6 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
             @Param("status") String status,
             @Param("roomId") Integer roomId,
             @Param("clientName") String clientName);
+
+        boolean existsByRoom_IdAndStatusAndIdNot(Integer roomId, String status, Integer id);
 }

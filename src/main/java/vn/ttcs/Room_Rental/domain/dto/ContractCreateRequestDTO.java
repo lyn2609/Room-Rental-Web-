@@ -17,7 +17,6 @@ public class ContractCreateRequestDTO {
     @NotNull(message = "Ngày kết thúc không được để trống")
     private LocalDate endDate;
 
-    @NotNull(message = "Tiền cọc không được để trống")
     private Double deposit;
 
     public Integer getRoomId() {

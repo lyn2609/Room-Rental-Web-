@@ -65,15 +65,15 @@ public class AdminContractController {
         return ResponseEntity.ok(ApiResponse.ok("Cập nhật trạng thái hợp đồng thành công!"));
     }
 
-    // 6. POST /api/client/contracts/{id}/roommates - Thêm người ở ghép
+    // POST /api/admin/contracts/{id}/roommates - Admin thêm người ở ghép (không cần check ownership)
     @PostMapping("/{id}/roommates")
     public ResponseEntity<ApiResponse<Void>> addRoommate(
             @PathVariable Integer id,
             @RequestBody RoommateRequestDTO requestDTO) {
 
-        contractService.addRoommate(id, requestDTO);
+        contractService.addRoommateByAdmin(id, requestDTO);
 
-        return ResponseEntity.ok(ApiResponse.ok("Thêm người ở ghép thành công, đang chờ Admin duyệt!"));
+        return ResponseEntity.ok(ApiResponse.ok("Admin đã thêm người ở ghép thành công (tự động duyệt)!"));
     }
 
     // 10. PATCH /api/admin/contracts/{id}/roommates/{rid}/approve - Duyệt bạn cùng phòng

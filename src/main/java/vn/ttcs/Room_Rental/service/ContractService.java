@@ -21,7 +21,12 @@ public interface ContractService {
     void changeContractStatus(Integer id, ContractStatusRequestDTO dto);
 
     // 6. Quản lý người ở ghép (Roommates)
+    /** Thêm người ở ghép - DÀNH CHO CLIENT: có kiểm tra quyền sở hữu hợp đồng */
     void addRoommate(Integer contractId, RoommateRequestDTO dto);
+
+    /** Thêm người ở ghép - DÀNH CHO ADMIN: bỏ qua kiểm tra quyền sở hữu */
+    void addRoommateByAdmin(Integer contractId, RoommateRequestDTO dto);
+
     void approveRoommate(Integer contractId, Integer roommateId);
     List<RoommateResponseDTO> getMyRoommates(Integer contractId);
     void deleteRoommate(Integer contractId, Integer roommateId);

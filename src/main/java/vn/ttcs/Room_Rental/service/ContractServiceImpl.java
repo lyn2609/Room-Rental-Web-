@@ -53,7 +53,7 @@ public class ContractServiceImpl implements ContractService {
         contract.setRoom(room);
         contract.setStartDate(dto.getStartDate());
         contract.setEndDate(dto.getEndDate());
-        contract.setDeposit(dto.getDeposit());
+        contract.setDeposit(resolveDepositFromRoom(room));
         contract.setStatus("ACTIVE");
         room.setStatus("RENTED");
 
@@ -114,9 +114,7 @@ public class ContractServiceImpl implements ContractService {
         if (dto.getEndDate() != null) {
             contract.setEndDate(dto.getEndDate());
         }
-        if (dto.getDeposit() != null) {
-            contract.setDeposit(dto.getDeposit());
-        }
+        contract.setDeposit(resolveDepositFromRoom(contract.getRoom()));
 
         // 3. Lưu lại
         contractRepository.save(contract);
@@ -135,8 +133,10 @@ public class ContractServiceImpl implements ContractService {
         // 2. Logic giải phóng/khóa phòng dựa trên trạng thái hợp đồng
         Room room = contract.getRoom();
         if ("TERMINATED".equals(newStatus) || "EXPIRED".equals(newStatus)) {
-            // Nếu thanh lý/hết hạn -> Trả phòng về trạng thái TRỐNG
-            room.setStatus("AVAILABLE");
+            // Chỉ trả phòng khi không còn hợp đồng ACTIVE nào khác của chính phòng đó
+            boolean hasOtherActiveContract = contractRepository.existsByRoom_IdAndStatusAndIdNot(
+                    room.getId(), "ACTIVE", contract.getId());
+            room.setStatus(hasOtherActiveContract ? "RENTED" : "AVAILABLE");
         } else if ("ACTIVE".equals(newStatus)) {
             // Nếu kích hoạt lại -> Chuyển phòng thành ĐÃ THUÊ
             room.setStatus("RENTED");
@@ -173,6 +173,25 @@ public class ContractServiceImpl implements ContractService {
         roommate.setStatus("PENDING"); // Trạng thái mặc định là chờ duyệt
 
         // 4. Lưu vào Database
+        roommateRepository.save(roommate);
+    }
+
+    @Override
+    public void addRoommateByAdmin(Integer contractId, RoommateRequestDTO dto) {
+        // Admin không cần kiểm tra quyền sở hữu - tìm hợp đồng trực tiếp
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng số: " + contractId));
+
+        Roommate roommate = new Roommate();
+        roommate.setContract(contract);
+        roommate.setFullName(dto.getFullName());
+        roommate.setCccd(dto.getCccd());
+        roommate.setPhone(dto.getPhone());
+        roommate.setGender(dto.getGender());
+        roommate.setHometown(dto.getHometown());
+        // Admin thêm thì duyệt thẳng luôn, không cần chờ
+        roommate.setStatus("APPROVED");
+
         roommateRepository.save(roommate);
     }
 
@@ -271,6 +290,13 @@ public class ContractServiceImpl implements ContractService {
         if (!contract.getUser().getPhone().equals(phone)) {
             throw new RuntimeException("Bạn không có quyền thao tác trên hợp đồng này!");
         }
+    }
+
+    private Double resolveDepositFromRoom(Room room) {
+        if (room == null || room.getPrice() == null) {
+            return 0.0;
+        }
+        return room.getPrice();
     }
 
     @Override
