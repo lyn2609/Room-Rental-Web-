@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import jakarta.validation.Valid;
 import vn.ttcs.Room_Rental.domain.dto.ApiResponse;
 import vn.ttcs.Room_Rental.domain.dto.ForgotPasswordRequestDTO;
@@ -17,6 +16,7 @@ import vn.ttcs.Room_Rental.domain.dto.RegisterRequestDTO;
 import vn.ttcs.Room_Rental.domain.dto.ResetPasswordRequestDTO;
 import vn.ttcs.Room_Rental.domain.dto.TokenResponseDTO;
 import vn.ttcs.Room_Rental.domain.dto.VerifyOtpRequestDTO;
+import vn.ttcs.Room_Rental.domain.dto.ResendVerifyOtpRequestDTO;
 import vn.ttcs.Room_Rental.service.AuthService;
 
 @RestController
@@ -45,6 +45,13 @@ public class AuthController {
             @Valid @RequestBody VerifyOtpRequestDTO dto) {
         authService.verifyEmail(dto);
         return ResponseEntity.ok(ApiResponse.ok("Xác nhận email thành công!"));
+    }
+
+    @PostMapping("/resend-verify-email")
+    public ResponseEntity<ApiResponse<Void>> resendVerifyEmail(
+            @Valid @RequestBody ResendVerifyOtpRequestDTO dto) {
+        authService.resendVerifyOtp(dto);
+        return ResponseEntity.ok(ApiResponse.ok("Mã OTP mới đã được gửi đến email " + dto.getEmail()));
     }
 
     @PostMapping("/login")

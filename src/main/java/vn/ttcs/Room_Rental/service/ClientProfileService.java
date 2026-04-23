@@ -137,7 +137,6 @@ public class ClientProfileService {
     private ProfileResponse toProfileResponse(User user) {
         ProfileResponse res = new ProfileResponse();
         res.setId(user.getId());
-        res.setUsername(user.getUsername());
         res.setFullName(user.getFullName());
         res.setCccd(user.getCccd());
         res.setDob(user.getDob());

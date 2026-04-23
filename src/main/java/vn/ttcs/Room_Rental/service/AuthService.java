@@ -13,6 +13,7 @@ import vn.ttcs.Room_Rental.domain.dto.RegisterRequestDTO;
 import vn.ttcs.Room_Rental.domain.dto.ResetPasswordRequestDTO;
 import vn.ttcs.Room_Rental.domain.dto.TokenResponseDTO;
 import vn.ttcs.Room_Rental.domain.dto.VerifyOtpRequestDTO;
+import vn.ttcs.Room_Rental.domain.dto.ResendVerifyOtpRequestDTO;
 import vn.ttcs.Room_Rental.repository.RoleRepository;
 import vn.ttcs.Room_Rental.repository.UserRepository;
 import vn.ttcs.Room_Rental.security.JwtUtil;
@@ -73,7 +74,6 @@ public class AuthService {
         user.setPhone(dto.getPhone());
         user.setEmail(dto.getEmail());
         user.setCccd(dto.getCccd());
-        user.setUsername(dto.getPhone());
         user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         user.setRole(clientRole);
         user.setStatus("INACTIVE");
@@ -97,6 +97,18 @@ public class AuthService {
         user.setEmailVerified(true);
         user.setStatus("ACTIVE");
         userRepository.save(user);
+    }
+
+    public void resendVerifyOtp(ResendVerifyOtpRequestDTO dto) {
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Email chưa được đăng ký trong hệ thống"));
+
+        if (user.isEmailVerified()) {
+            throw new IllegalArgumentException("Tài khoản đã được xác thực email");
+        }
+
+        String otp = otpService.generateAndSave(dto.getEmail(), "VERIFY");
+        emailService.sendVerificationOtp(dto.getEmail(), otp);
     }
 
 
