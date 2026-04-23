@@ -2,11 +2,12 @@ package vn.ttcs.Room_Rental.controller.client;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import jakarta.validation.Valid;
 import vn.ttcs.Room_Rental.domain.dto.ApiResponse;
 import vn.ttcs.Room_Rental.domain.dto.ForgotPasswordRequestDTO;
@@ -70,7 +71,13 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @AuthenticationPrincipal String phone) {
+            Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bạn chưa đăng nhập");
+        }
+
+        String phone = authentication.getName();
         authService.logout(phone);
         return ResponseEntity.ok(ApiResponse.ok("Đăng xuất thành công"));
     }

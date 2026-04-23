@@ -61,6 +61,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/vnpay/**").permitAll()
                         .requestMatchers("/error").permitAll()
