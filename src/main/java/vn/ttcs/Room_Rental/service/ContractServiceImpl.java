@@ -314,6 +314,9 @@ public class ContractServiceImpl implements ContractService {
         // 3. Map thông tin hợp đồng
         ContractResponseDTO dto = new ContractResponseDTO();
         dto.setId(contract.getId());
+        dto.setRoomId(contract.getRoom().getId());
+        dto.setUserId(contract.getUser().getId());
+        dto.setUserFullName(contract.getUser().getFullName());
         dto.setRoomName(contract.getRoom().getName());
         dto.setStartDate(contract.getStartDate());
         dto.setEndDate(contract.getEndDate());

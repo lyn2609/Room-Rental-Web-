@@ -15,6 +15,7 @@ public class ContractResponseDTO {
     private String status;
     private List<ServiceResponseDTO> services;
 
+    // Getter và Setter cho id
     public Integer getId() {
         return id;
     }
@@ -23,6 +24,7 @@ public class ContractResponseDTO {
         this.id = id;
     }
 
+    // Getter và Setter cho roomId
     public Integer getRoomId() {
         return roomId;
     }
@@ -31,6 +33,7 @@ public class ContractResponseDTO {
         this.roomId = roomId;
     }
 
+    // Getter và Setter cho roomName
     public String getRoomName() {
         return roomName;
     }
@@ -39,6 +42,7 @@ public class ContractResponseDTO {
         this.roomName = roomName;
     }
 
+    // Getter và Setter cho userId
     public Integer getUserId() {
         return userId;
     }
@@ -47,6 +51,7 @@ public class ContractResponseDTO {
         this.userId = userId;
     }
 
+    // Getter và Setter cho userFullName
     public String getUserFullName() {
         return userFullName;
     }
@@ -55,6 +60,7 @@ public class ContractResponseDTO {
         this.userFullName = userFullName;
     }
 
+    // Getter và Setter cho startDate
     public LocalDate getStartDate() {
         return startDate;
     }
@@ -63,6 +69,7 @@ public class ContractResponseDTO {
         this.startDate = startDate;
     }
 
+    // Getter và Setter cho endDate
     public LocalDate getEndDate() {
         return endDate;
     }
@@ -71,6 +78,7 @@ public class ContractResponseDTO {
         this.endDate = endDate;
     }
 
+    // Getter và Setter cho deposit
     public Double getDeposit() {
         return deposit;
     }
@@ -79,6 +87,7 @@ public class ContractResponseDTO {
         this.deposit = deposit;
     }
 
+    // Getter và Setter cho status
     public String getStatus() {
         return status;
     }
@@ -87,6 +96,7 @@ public class ContractResponseDTO {
         this.status = status;
     }
 
+    // Getter và Setter cho danh sách dịch vụ kèm theo
     public List<ServiceResponseDTO> getServices() {
         return services;
     }
