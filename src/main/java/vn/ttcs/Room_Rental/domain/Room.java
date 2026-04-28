@@ -33,6 +33,9 @@ public class Room {
     @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
 
+    @Column(length = 255)
+    private String area;
+
     @OneToMany(mappedBy = "room")
     private List<Contract> contracts;
 
@@ -61,6 +64,14 @@ public class Room {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getArea() {
+        return area;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
     }
 
     public Double getPrice() {
@@ -95,7 +106,6 @@ public class Room {
         this.contracts = contracts;
     }
 
-    // --- GETTER/SETTER CHO SERVICES ---
     public List<Service> getServices() {
         return services;
     }

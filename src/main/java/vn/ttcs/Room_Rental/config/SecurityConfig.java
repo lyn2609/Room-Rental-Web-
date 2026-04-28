@@ -61,12 +61,21 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/logout").authenticated()
-                        .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/vnpay/**").permitAll()
-                        .requestMatchers("/error").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // 1. API Logout - Phải đăng nhập mới được gọi (Đặt lên đầu nhóm /api/auth/)
+                        .requestMatchers("/api/auth/logout").authenticated()
+
+                        // 2. Các API Công khai (Public)
+                        .requestMatchers("/api/auth/**", "/api/vnpay/**", "/error").permitAll()
+                        .requestMatchers("/api/rooms/**").permitAll()
+
+                        // 3. API dành riêng cho Client (Khách thuê)
+                        // Vì CustomUserDetails dùng "ROLE_" + tên role, nên phải dùng hasRole
                         .requestMatchers("/api/client/**").hasRole("CLIENT")
+
+                        // 4. API dành riêng cho Admin (Quản lý)
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // 5. Mọi request khác đều phải xác thực (Login)
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
