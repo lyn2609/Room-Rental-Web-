@@ -8,6 +8,8 @@ public class RoommateResponseDTO {
     private String gender;
     private String hometown;
     private String status;
+    private String roomName;
+    private Integer contractId;
 
     public Integer getId() {
         return id;
@@ -63,5 +65,21 @@ public class RoommateResponseDTO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
+    }
+
+    public Integer getContractId() {
+        return contractId;
+    }
+
+    public void setContractId(Integer contractId) {
+        this.contractId = contractId;
     }
 }
