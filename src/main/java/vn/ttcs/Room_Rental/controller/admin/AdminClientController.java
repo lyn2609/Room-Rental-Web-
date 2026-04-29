@@ -20,10 +20,17 @@ public class AdminClientController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ClientResponseDTO>>> getClients(
-            @RequestParam(required = false) String keyword) {
-        List<ClientResponseDTO> list = adminClientService.getClients(keyword);
-        return ResponseEntity.ok(ApiResponse.ok("Lấy danh sách khách thuê thành công", list));
+    public ResponseEntity<ApiResponse<List<ClientResponseDTO>>> getAllClients(
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String cccd,
+            @RequestParam(required = false) String roomName,
+            @RequestParam(required = false) String status) {
+
+        // Truyền đủ 5 tham số xuống Service
+        List<ClientResponseDTO> clients = adminClientService.searchClients(fullName, phone, cccd, roomName, status);
+
+        return ResponseEntity.ok(ApiResponse.ok("Lấy danh sách khách thuê thành công", clients));
     }
 
     @GetMapping("/{id}")

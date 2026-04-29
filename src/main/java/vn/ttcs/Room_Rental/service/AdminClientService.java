@@ -18,9 +18,10 @@ public class AdminClientService {
         this.userRepository = userRepository;
     }
 
-    // 1. Lấy danh sách + Tìm kiếm
-    public List<ClientResponseDTO> getClients(String keyword) {
-        List<User> users = userRepository.searchClients(keyword);
+    // 1. CẬP NHẬT: Hàm tìm kiếm đa điều kiện (Khớp với Controller)
+    public List<ClientResponseDTO> searchClients(String fullName, String phone, String cccd, String roomName, String status) {
+        // Lưu ý: Tên hàm searchClients phải khớp với tên bạn đặt trong UserRepository nhé
+        List<User> users = userRepository.searchClients(fullName, phone, cccd, roomName, status);
         return users.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
@@ -41,7 +42,7 @@ public class AdminClientService {
         userRepository.save(user);
     }
 
-    // Hàm phụ trợ chuyển User sang DTO
+    // Hàm phụ trợ chuyển User sang DTO (Giữ nguyên logic của bạn)
     private ClientResponseDTO mapToDTO(User user) {
         ClientResponseDTO dto = new ClientResponseDTO();
         dto.setId(user.getId());
