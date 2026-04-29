@@ -91,9 +91,11 @@ public class ContractServiceImpl implements ContractService {
             if (c.getRoom().getServices() != null) {
                 List<ServiceResponseDTO> serviceDTOs = c.getRoom().getServices().stream()
                         .map(s -> new ServiceResponseDTO(
+                                s.getId(),
                                 s.getName(),
-                                s.getDefaultPrice(), // Lưu ý: Dùng đúng tên getDefaultPrice() trong Service.java của bạn
-                                s.getUnit()
+                                s.getDefaultPrice(),
+                                s.getUnit(),
+                                s.getIsMetered()
                         ))
                         .collect(Collectors.toList());
                 dto.setServices(serviceDTOs);
@@ -326,7 +328,13 @@ public class ContractServiceImpl implements ContractService {
         // 4. Lấy danh sách dịch vụ từ Room (Giả sử Entity Room của bạn có List<Service> services)
         if (contract.getRoom().getServices() != null) {
             List<ServiceResponseDTO> serviceDTOs = contract.getRoom().getServices().stream()
-                    .map(s -> new ServiceResponseDTO(s.getName(), s.getDefaultPrice(), s.getUnit()))
+                    .map(s -> new ServiceResponseDTO(
+                            s.getId(),
+                            s.getName(),
+                            s.getDefaultPrice(),
+                            s.getUnit(),
+                            s.getIsMetered()
+                    ))
                     .collect(Collectors.toList());
             dto.setServices(serviceDTOs);
         }
