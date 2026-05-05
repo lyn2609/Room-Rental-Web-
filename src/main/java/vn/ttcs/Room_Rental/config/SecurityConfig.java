@@ -67,6 +67,7 @@ public class SecurityConfig {
                         // 2. Các API Công khai (Public)
                         .requestMatchers("/api/auth/**", "/api/vnpay/**", "/error").permitAll()
                         .requestMatchers("/api/rooms/**").permitAll()
+                        .requestMatchers("/api/ai/**").permitAll()
 
                         // 3. API dành riêng cho Client (Khách thuê)
                         // Vì CustomUserDetails dùng "ROLE_" + tên role, nên phải dùng hasRole
