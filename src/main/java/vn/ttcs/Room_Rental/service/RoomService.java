@@ -8,6 +8,7 @@ import vn.ttcs.Room_Rental.domain.User;
 import vn.ttcs.Room_Rental.domain.dto.BookingRequestDTO;
 import vn.ttcs.Room_Rental.domain.dto.RoomRequestDTO;
 import vn.ttcs.Room_Rental.domain.dto.RoomResponseDTO;
+import vn.ttcs.Room_Rental.domain.dto.ServiceResponseDTO;
 import vn.ttcs.Room_Rental.repository.BookingViewRepository;
 import vn.ttcs.Room_Rental.repository.RoomRepository;
 import vn.ttcs.Room_Rental.repository.UserRepository;
@@ -29,24 +30,22 @@ public class RoomService {
         this.bookingViewRepository = bookingViewRepository;
     }
 
-    // 1. Tìm kiếm (Public)
     public List<RoomResponseDTO> searchRooms(String area, Double minPrice, Double maxPrice) {
         return roomRepository.searchRooms(area, minPrice, maxPrice).stream()
                 .map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // 2. Chi tiết (Public)
     public RoomResponseDTO getRoomDetail(Integer id) {
-        Room room = roomRepository.findById(id).orElseThrow(() -> new RuntimeException("Phòng không tồn tại"));
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Phòng không tồn tại"));
         return mapToDTO(room);
     }
 
-    // 3. Quản lý toàn bộ (Admin)
     public List<RoomResponseDTO> getAllRooms() {
-        return roomRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
+        return roomRepository.findAll().stream()
+                .map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // 4. Thêm/Sửa (Admin) - ĐÃ CẬP NHẬT ADDRESS
     @Transactional
     public void saveOrUpdateRoom(Integer id, RoomRequestDTO dto) {
         Room room;
@@ -54,26 +53,26 @@ public class RoomService {
             room = new Room();
         } else {
             room = roomRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng với ID: " + id));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng ID: " + id));
         }
 
         room.setName(dto.getName());
         room.setArea(dto.getArea());
-        room.setAddress(dto.getAddress()); // Dòng quan trọng nhất để fix lỗi 500
+        room.setAddress(dto.getAddress());
         room.setPrice(dto.getPrice());
         room.setStatus(dto.getStatus());
-        room.setDescription(dto.getDescription());
+        room.setImageUrl(dto.getImageUrl());
+        room.setShortDescription(dto.getShortDescription());
+        room.setDetailedDescription(dto.getDetailedDescription());
+        room.setMaxOccupants(dto.getMaxOccupants());
 
         roomRepository.save(room);
     }
 
-    // 5. Đặt lịch xem phòng (Client)
     @Transactional
     public void bookRoom(Integer roomId, Integer clientId, BookingRequestDTO dto) {
-        Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new RuntimeException("Phòng không tồn tại"));
-        User user = userRepository.findById(clientId)
-                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+        Room room = roomRepository.findById(roomId).orElseThrow();
+        User user = userRepository.findById(clientId).orElseThrow();
 
         BookingView booking = new BookingView();
         booking.setRoom(room);
@@ -85,16 +84,32 @@ public class RoomService {
         bookingViewRepository.save(booking);
     }
 
-    // CẬP NHẬT MAP TO DTO ĐỂ TRẢ VỀ CẢ ĐỊA CHỈ
     private RoomResponseDTO mapToDTO(Room room) {
         RoomResponseDTO dto = new RoomResponseDTO();
         dto.setId(room.getId());
         dto.setName(room.getName());
         dto.setArea(room.getArea());
-        dto.setAddress(room.getAddress()); // Thêm dòng này để Client/Admin thấy địa chỉ
+        dto.setAddress(room.getAddress());
         dto.setPrice(room.getPrice());
         dto.setStatus(room.getStatus());
-        dto.setDescription(room.getDescription());
+        dto.setImageUrl(room.getImageUrl());
+        dto.setShortDescription(room.getShortDescription());
+        dto.setDetailedDescription(room.getDetailedDescription());
+        dto.setMaxOccupants(room.getMaxOccupants());
+
+        if (room.getServices() != null) {
+            List<ServiceResponseDTO> services = room.getServices().stream()
+                    .map(s -> new ServiceResponseDTO(
+                            s.getId(),
+                            s.getName(),
+                            s.getDefaultPrice(),
+                            s.getUnit(),
+                            s.getIsMetered()
+                    ))
+                    .collect(Collectors.toList());
+            dto.setServices(services);
+        }
+
         return dto;
     }
 }
