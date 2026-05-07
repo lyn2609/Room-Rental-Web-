@@ -28,13 +28,22 @@ public class Room {
     private Double price;
 
     @Column(nullable = false, length = 20)
-    private String status = "AVAILABLE"; // AVAILABLE, RENTED, MAINTENANCE
-
-    @Column(columnDefinition = "MEDIUMTEXT")
-    private String description;
+    private String status = "AVAILABLE";
 
     @Column(length = 255)
     private String area;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "short_description")
+    private String shortDescription;
+
+    @Column(name = "detailed_description", columnDefinition = "TEXT")
+    private String detailedDescription;
+
+    @Column(name = "max_occupants")
+    private Integer maxOccupants;
 
     @OneToMany(mappedBy = "room")
     private List<Contract> contracts;
@@ -90,12 +99,36 @@ public class Room {
         this.status = status;
     }
 
-    public String getDescription() {
-        return description;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getShortDescription() {
+        return shortDescription;
+    }
+
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
+    }
+
+    public String getDetailedDescription() {
+        return detailedDescription;
+    }
+
+    public void setDetailedDescription(String detailedDescription) {
+        this.detailedDescription = detailedDescription;
+    }
+
+    public Integer getMaxOccupants() {
+        return maxOccupants;
+    }
+
+    public void setMaxOccupants(Integer maxOccupants) {
+        this.maxOccupants = maxOccupants;
     }
 
     public List<Contract> getContracts() {
