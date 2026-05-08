@@ -45,13 +45,12 @@ public class InvoiceAdminController {
         return ResponseEntity.ok(invoiceService.confirmCashPayment(id));
     }
 
-    // PATCH /api/admin/invoices/contract/{contractId}/month/{month}
-    @PatchMapping("/contract/{contractId}/month/{month}")
-    public ResponseEntity<InvoiceResponse> updateInvoiceByContractAndMonth(
-            @PathVariable Integer contractId,
-            @PathVariable String month,
+    // PATCH /api/admin/invoices/{id}
+    @PatchMapping("/{id}")
+    public ResponseEntity<InvoiceResponse> updateInvoice(
+            @PathVariable Integer id,
             @Valid @RequestBody UpdateInvoiceRequest request) {
-        return ResponseEntity.ok(invoiceService.updateInvoiceByContractAndMonth(contractId, month, request));
+        return ResponseEntity.ok(invoiceService.updateInvoice(id, request));
     }
 
     // GET /api/admin/invoices/dashboard?month=2025-06

@@ -204,13 +204,11 @@ public class InvoiceService {
         return results;
     }
 
-        @Transactional
-        public InvoiceResponse updateInvoiceByContractAndMonth(Integer contractId, String month, UpdateInvoiceRequest request) {
-        YearMonth billingMonth = parseBillingMonthOrThrow(month);
-
-        Invoice invoice = invoiceRepository.findByContract_IdAndMonth(contractId, billingMonth.toString())
+    @Transactional
+    public InvoiceResponse updateInvoice(Integer invoiceId, UpdateInvoiceRequest request) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Không tìm thấy hóa đơn tháng " + billingMonth + " của hợp đồng " + contractId));
+                "Không tìm thấy hóa đơn"));
 
         if (isPaid(invoice)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
@@ -218,7 +216,8 @@ public class InvoiceService {
         }
 
         Contract contract = invoice.getContract();
-        validateContractForInvoiceGeneration(contract, billingMonth.toString());
+        String month = invoice.getMonth();
+        validateContractForInvoiceGeneration(contract, month);
 
         List<vn.ttcs.Room_Rental.domain.Service> services =
             serviceRepository.findByRoom_Id(contract.getRoom().getId());
@@ -226,7 +225,7 @@ public class InvoiceService {
         List<InvoiceDetail> details = buildInvoiceDetails(
             invoice,
             contract,
-            billingMonth.toString(),
+            month,
             request.getElectricOldIndex(),
             request.getElectricNewIndex(),
             request.getWaterOldIndex(),
@@ -245,7 +244,7 @@ public class InvoiceService {
         invoice.setInvoiceDetails(details);
 
         return toResponseWithDetails(invoice, details);
-        }
+    }
 
     @Transactional
     public InvoiceResponse confirmCashPayment(Integer invoiceId) {
