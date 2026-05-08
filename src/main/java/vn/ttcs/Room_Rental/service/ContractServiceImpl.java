@@ -2,52 +2,52 @@ package vn.ttcs.Room_Rental.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.ttcs.Room_Rental.domain.Contract;
-import vn.ttcs.Room_Rental.domain.Room;
-import vn.ttcs.Room_Rental.domain.Roommate;
-import vn.ttcs.Room_Rental.domain.User;
+import org.springframework.security.core.context.SecurityContextHolder;
+import vn.ttcs.Room_Rental.domain.*;
 import vn.ttcs.Room_Rental.domain.dto.*;
-import vn.ttcs.Room_Rental.repository.ContractRepository;
-import vn.ttcs.Room_Rental.repository.RoomRepository;
-import vn.ttcs.Room_Rental.repository.RoommateRepository;
-import vn.ttcs.Room_Rental.repository.UserRepository;
+import vn.ttcs.Room_Rental.repository.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-// @RequiredArgsConstructor
 public class ContractServiceImpl implements ContractService {
 
     private final ContractRepository contractRepository;
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
     private final RoommateRepository roommateRepository;
+    private final ContractAppendixRepository appendixRepository;
+    private final ServiceRepository serviceRepository;
 
-    public ContractServiceImpl(ContractRepository contractRepository, RoomRepository roomRepository, UserRepository userRepository, RoommateRepository roommateRepository) {
+    public ContractServiceImpl(ContractRepository contractRepository,
+                               RoomRepository roomRepository,
+                               UserRepository userRepository,
+                               RoommateRepository roommateRepository,
+                               ContractAppendixRepository appendixRepository,
+                               ServiceRepository serviceRepository) {
         this.contractRepository = contractRepository;
         this.roomRepository = roomRepository;
         this.userRepository = userRepository;
         this.roommateRepository = roommateRepository;
+        this.appendixRepository = appendixRepository;
+        this.serviceRepository = serviceRepository;
     }
-
 
     @Override
     @Transactional
     public void createContract(ContractCreateRequestDTO dto) {
-        // 1. Tìm phòng
         Room room = roomRepository.findById(dto.getRoomId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
 
-        // Ép kiểu an toàn bằng cách dùng .name() so sánh với chuỗi
         if (!"AVAILABLE".equals(room.getStatus())) {
             throw new RuntimeException("Phòng này hiện không trống để cho thuê!");
         }
 
-        // 2. Tìm người dùng
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        // 3. Tạo hợp đồng
         Contract contract = new Contract();
         contract.setUser(user);
         contract.setRoom(room);
@@ -55,116 +55,184 @@ public class ContractServiceImpl implements ContractService {
         contract.setEndDate(dto.getEndDate());
         contract.setDeposit(resolveDepositFromRoom(room));
         contract.setStatus("ACTIVE");
+
+        // --- TỰ ĐỘNG CHỐT DỊCH VỤ VÀ GIÁ (Snapshot Price) ---
+        if (room.getServices() != null && !room.getServices().isEmpty()) {
+            List<ContractServiceDetail> details = room.getServices().stream().map(s -> {
+                ContractServiceDetail detail = new ContractServiceDetail();
+                detail.setContract(contract);
+                detail.setService(s);
+                detail.setActualPrice(s.getDefaultPrice()); // Chốt giá tại thời điểm ký
+                return detail;
+            }).collect(Collectors.toList());
+            contract.setServices(details);
+        }
+
         room.setStatus("RENTED");
-
-        // Chú ý: Thay ContractsStatusEnum bằng tên Enum chuẩn trong project của bạn
-        // Ví dụ: contract.setStatus(ContractsStatusEnum.ACTIVE);
-
-        // 4. Cập nhật trạng thái phòng
-        // Chú ý: Thay RoomsStatusEnum bằng tên Enum chuẩn trong project của bạn
-        // Ví dụ: room.setStatus(RoomsStatusEnum.RENTED);
-
-        // 5. Lưu xuống Database
         roomRepository.save(room);
         contractRepository.save(contract);
     }
 
     @Override
     public List<ContractResponseDTO> getAllContracts(String status, Integer roomId, String clientName) {
-        // 1. Lấy dữ liệu từ Repo với các bộ lọc
         List<Contract> contracts = contractRepository.findWithFilters(status, roomId, clientName);
-
-        // 2. Map sang DTO
-        return contracts.stream().map(c -> {
-            ContractResponseDTO dto = new ContractResponseDTO();
-            dto.setId(c.getId());
-            dto.setRoomId(c.getRoom().getId());
-            dto.setRoomName(c.getRoom().getName());
-            dto.setUserId(c.getUser().getId());
-            dto.setUserFullName(c.getUser().getFullName());
-            dto.setStartDate(c.getStartDate());
-            dto.setEndDate(c.getEndDate());
-            dto.setDeposit(c.getDeposit());
-            dto.setStatus(c.getStatus());
-
-            // 3. XỬ LÝ DỊCH VỤ: Lôi từ Room ra để Admin xem cho tiện
-            if (c.getRoom().getServices() != null) {
-                List<ServiceResponseDTO> serviceDTOs = c.getRoom().getServices().stream()
-                        .map(s -> new ServiceResponseDTO(
-                                s.getId(),
-                                s.getName(),
-                                s.getDefaultPrice(),
-                                s.getUnit(),
-                                s.getIsMetered()
-                        ))
-                        .collect(Collectors.toList());
-                dto.setServices(serviceDTOs);
-            }
-
-            return dto; // Trả về DTO đã đầy đủ thông tin
-        }).collect(Collectors.toList());
+        return contracts.stream().map(this::mapToResponseDTO).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public void updateContract(Integer id, ContractUpdateRequestDTO dto) {
-        // 1. Tìm hợp đồng xem có tồn tại không
         Contract contract = contractRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng số: " + id));
 
-        // 2. Cập nhật dữ liệu mới (Nếu người dùng có truyền lên)
-        if (dto.getEndDate() != null) {
-            contract.setEndDate(dto.getEndDate());
-        }
-        contract.setDeposit(resolveDepositFromRoom(contract.getRoom()));
+        StringBuilder changes = new StringBuilder("Cập nhật hợp đồng: ");
+        boolean isChanged = false;
 
-        // 3. Lưu lại
-        contractRepository.save(contract);
+        // 1. Cập nhật Ngày kết thúc
+        if (dto.getEndDate() != null && !dto.getEndDate().equals(contract.getEndDate())) {
+            changes.append("[Hạn cũ: ").append(contract.getEndDate()).append(" -> Mới: ").append(dto.getEndDate()).append("] ");
+            contract.setEndDate(dto.getEndDate());
+            isChanged = true;
+        }
+
+        // 2. Cập nhật Tiền cọc
+        if (dto.getDeposit() != null && !dto.getDeposit().equals(contract.getDeposit())) {
+            changes.append("[Cọc cũ: ").append(contract.getDeposit()).append(" -> Mới: ").append(dto.getDeposit()).append("] ");
+            contract.setDeposit(dto.getDeposit());
+            isChanged = true;
+        }
+
+        // 3. Cập nhật danh sách dịch vụ & Chốt giá mới
+        if (dto.getServiceIds() != null) {
+            List<vn.ttcs.Room_Rental.domain.Service> selectedServices = serviceRepository.findAllById(dto.getServiceIds());
+
+            // Xóa danh sách cũ (orphanRemoval = true sẽ tự xóa trong DB)
+            contract.getServices().clear();
+
+            // Thêm danh sách mới với giá hiện tại
+            List<ContractServiceDetail> newDetails = selectedServices.stream().map(s -> {
+                ContractServiceDetail detail = new ContractServiceDetail();
+                detail.setContract(contract);
+                detail.setService(s);
+                detail.setActualPrice(s.getDefaultPrice());
+                return detail;
+            }).collect(Collectors.toList());
+
+            contract.getServices().addAll(newDetails);
+
+            String names = selectedServices.stream().map(vn.ttcs.Room_Rental.domain.Service::getName).collect(Collectors.joining(", "));
+            changes.append("[Dịch vụ mới chọn: ").append(names).append("] ");
+            isChanged = true;
+        }
+
+        if (isChanged) {
+            ContractAppendix appendix = new ContractAppendix();
+            appendix.setContract(contract);
+            String note = (dto.getNote() != null) ? "\nGhi chú: " + dto.getNote() : "";
+            appendix.setContent(changes.toString() + note);
+            appendixRepository.save(appendix);
+            contractRepository.save(contract);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateServicePrice(Integer serviceId, Double newPrice) {
+        vn.ttcs.Room_Rental.domain.Service service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy dịch vụ"));
+
+        Double oldPrice = service.getDefaultPrice();
+        if (oldPrice.equals(newPrice)) return;
+
+        // Cập nhật bảng gốc (cho các HĐ tương lai)
+        service.setDefaultPrice(newPrice);
+        serviceRepository.save(service);
+
+        // Ghi phụ lục cho các hợp đồng ACTIVE đang dùng dịch vụ này
+        List<Contract> activeContracts = contractRepository.findByRoom_IdAndStatus(service.getRoom().getId(), "ACTIVE");
+        for (Contract contract : activeContracts) {
+            // Kiểm tra xem HĐ này có đang dùng dịch vụ này không
+            boolean isUsing = contract.getServices().stream()
+                    .anyMatch(sd -> sd.getService().getId().equals(serviceId));
+
+            if (isUsing) {
+                ContractAppendix appendix = new ContractAppendix();
+                appendix.setContract(contract);
+                appendix.setContent("Hệ thống cập nhật giá dịch vụ [" + service.getName() + "]: "
+                        + oldPrice + " -> " + newPrice + " (" + service.getUnit() + ")");
+                appendixRepository.save(appendix);
+            }
+        }
+    }
+
+    // Hàm bổ trợ để map dữ liệu sang DTO (Dùng cho getAll và getDetail)
+    private ContractResponseDTO mapToResponseDTO(Contract c) {
+        ContractResponseDTO dto = new ContractResponseDTO();
+        dto.setId(c.getId());
+        dto.setRoomId(c.getRoom().getId());
+        dto.setRoomName(c.getRoom().getName());
+        dto.setUserId(c.getUser().getId());
+        dto.setUserFullName(c.getUser().getFullName());
+        dto.setStartDate(c.getStartDate());
+        dto.setEndDate(c.getEndDate());
+        dto.setDeposit(c.getDeposit());
+        dto.setStatus(c.getStatus());
+
+        if (c.getServices() != null) {
+            List<ServiceResponseDTO> serviceDTOs = c.getServices().stream()
+                    .map(sd -> new ServiceResponseDTO(
+                            sd.getService().getId(),
+                            sd.getService().getName(),
+                            sd.getActualPrice(), // Lấy giá ĐÃ CHỐT trong HĐ
+                            sd.getService().getUnit(),
+                            sd.getService().getIsMetered()
+                    ))
+                    .collect(Collectors.toList());
+            dto.setServices(serviceDTOs);
+        }
+        return dto;
+    }
+
+    @Override
+    public List<ContractAppendixResponseDTO> getContractAppendices(Integer contractId) {
+        return appendixRepository.findByContractIdOrderByCreatedAtDesc(contractId)
+                .stream()
+                .map(app -> new ContractAppendixResponseDTO(app.getId(), app.getContent(), app.getCreatedAt()))
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public void changeContractStatus(Integer id, ContractStatusRequestDTO dto) {
-        // 1. Tìm hợp đồng
         Contract contract = contractRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng số: " + id));
 
-        String newStatus = dto.getStatus().toUpperCase(); // Viết hoa cho chuẩn Enum
+        String newStatus = dto.getStatus().toUpperCase();
         contract.setStatus(newStatus);
 
-        // 2. Logic giải phóng/khóa phòng dựa trên trạng thái hợp đồng
         Room room = contract.getRoom();
         if ("TERMINATED".equals(newStatus) || "EXPIRED".equals(newStatus)) {
-            // Chỉ trả phòng khi không còn hợp đồng ACTIVE nào khác của chính phòng đó
             boolean hasOtherActiveContract = contractRepository.existsByRoom_IdAndStatusAndIdNot(
                     room.getId(), "ACTIVE", contract.getId());
             room.setStatus(hasOtherActiveContract ? "RENTED" : "AVAILABLE");
         } else if ("ACTIVE".equals(newStatus)) {
-            // Nếu kích hoạt lại -> Chuyển phòng thành ĐÃ THUÊ
             room.setStatus("RENTED");
         }
 
-        // 3. Lưu thay đổi vào Database
         roomRepository.save(room);
         contractRepository.save(contract);
     }
 
     @Override
     public void addRoommate(Integer contractId, RoommateRequestDTO dto) {
-        // 1. Xác định ai đang đăng nhập
-        String identifier = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByPhone(identifier)
-                .orElseThrow(() -> new RuntimeException("Lỗi xác thực người dùng"));
+        String phone = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByPhone(phone).orElseThrow();
 
-        // 2. Tìm hợp đồng và KIỂM TRA QUYỀN SỞ HỮU
-        Contract contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng số: " + contractId));
-
+        Contract contract = contractRepository.findById(contractId).orElseThrow();
         if (!contract.getUser().getId().equals(currentUser.getId())) {
-            throw new RuntimeException("Lỗi bảo mật: Bạn không có quyền thao tác trên hợp đồng của người khác!");
+            throw new RuntimeException("Bạn không có quyền!");
         }
 
-        // 3. Đổ dữ liệu từ DTO sang Entity Roommate
         Roommate roommate = new Roommate();
         roommate.setContract(contract);
         roommate.setFullName(dto.getFullName());
@@ -172,18 +240,13 @@ public class ContractServiceImpl implements ContractService {
         roommate.setPhone(dto.getPhone());
         roommate.setGender(dto.getGender());
         roommate.setHometown(dto.getHometown());
-        roommate.setStatus("PENDING"); // Trạng thái mặc định là chờ duyệt
-
-        // 4. Lưu vào Database
+        roommate.setStatus("PENDING");
         roommateRepository.save(roommate);
     }
 
     @Override
     public void addRoommateByAdmin(Integer contractId, RoommateRequestDTO dto) {
-        // Admin không cần kiểm tra quyền sở hữu - tìm hợp đồng trực tiếp
-        Contract contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng số: " + contractId));
-
+        Contract contract = contractRepository.findById(contractId).orElseThrow();
         Roommate roommate = new Roommate();
         roommate.setContract(contract);
         roommate.setFullName(dto.getFullName());
@@ -191,68 +254,32 @@ public class ContractServiceImpl implements ContractService {
         roommate.setPhone(dto.getPhone());
         roommate.setGender(dto.getGender());
         roommate.setHometown(dto.getHometown());
-        // Admin thêm thì duyệt thẳng luôn, không cần chờ
         roommate.setStatus("APPROVED");
-
         roommateRepository.save(roommate);
     }
 
     @Override
     public List<ContractResponseDTO> getMyContracts() {
-        // 1. Lấy thông tin identifier (phone) từ Security Context
-        String identifier = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
-
-        // 2. Tìm User
-        User user = userRepository.findByPhone(identifier)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hiện tại"));
-
-        // 3. Tìm danh sách hợp đồng
-        List<Contract> contracts = contractRepository.findByUserId(user.getId());
-
-        // 4. Chuyển sang DTO
-        return contracts.stream().map(contract -> {
-            ContractResponseDTO dto = new ContractResponseDTO();
-            dto.setId(contract.getId());
-            dto.setRoomId(contract.getRoom().getId());
-            dto.setRoomName(contract.getRoom().getName());
-            dto.setUserId(contract.getUser().getId());
-            dto.setUserFullName(contract.getUser().getFullName());
-            dto.setStartDate(contract.getStartDate());
-            dto.setEndDate(contract.getEndDate());
-            dto.setDeposit(contract.getDeposit());
-            dto.setStatus(contract.getStatus());
-            return dto;
-        }).collect(java.util.stream.Collectors.toList());
+        String phone = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByPhone(phone).orElseThrow();
+        return contractRepository.findByUserId(user.getId())
+                .stream().map(this::mapToResponseDTO).collect(Collectors.toList());
     }
 
     @Override
     public void approveRoommate(Integer contractId, Integer roommateId) {
-        // 1. Tìm người ở ghép dựa trên ID và ID hợp đồng để đảm bảo chính xác
-        Roommate roommate = roommateRepository.findById(roommateId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người ở ghép này"));
-
-        // Kiểm tra xem người này có đúng thuộc hợp đồng đó không
+        Roommate roommate = roommateRepository.findById(roommateId).orElseThrow();
         if (!roommate.getContract().getId().equals(contractId)) {
-            throw new RuntimeException("Người ở ghép này không thuộc hợp đồng số " + contractId);
+            throw new RuntimeException("Dữ liệu không đồng nhất!");
         }
-
-        // 2. Cập nhật trạng thái thành APPROVED
         roommate.setStatus("APPROVED");
-
-        // 3. Lưu lại vào Database
         roommateRepository.save(roommate);
     }
 
     @Override
     public List<RoommateResponseDTO> getMyRoommates(Integer contractId) {
-        // 1. Kiểm tra quyền sở hữu hợp đồng (đã viết ở bước trước)
         checkContractOwnership(contractId);
-
-        // 2. Lấy danh sách Entity
-        List<Roommate> roommates = roommateRepository.findByContractId(contractId);
-
-        // 3. Map sang DTO để ngắt vòng lặp
-        return roommates.stream().map(r -> {
+        return roommateRepository.findByContractId(contractId).stream().map(r -> {
             RoommateResponseDTO dto = new RoommateResponseDTO();
             dto.setId(r.getId());
             dto.setFullName(r.getFullName());
@@ -262,83 +289,36 @@ public class ContractServiceImpl implements ContractService {
             dto.setHometown(r.getHometown());
             dto.setStatus(r.getStatus());
             return dto;
-        }).collect(java.util.stream.Collectors.toList());
+        }).collect(Collectors.toList());
     }
 
     @Override
     public void deleteRoommate(Integer contractId, Integer roommateId) {
-        // 1. Kiểm tra quyền sở hữu hợp đồng
         checkContractOwnership(contractId);
-
-        // 2. Tìm người ở ghép
-        Roommate roommate = roommateRepository.findById(roommateId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người ở ghép này"));
-
-        // 3. Kiểm tra xem người này có đúng thuộc hợp đồng đó không
+        Roommate roommate = roommateRepository.findById(roommateId).orElseThrow();
         if (!roommate.getContract().getId().equals(contractId)) {
             throw new RuntimeException("Dữ liệu không đồng nhất!");
         }
-
-        // 4. Xóa khỏi DB
         roommateRepository.delete(roommate);
     }
 
-    // Hàm dùng chung để kiểm tra quyền sở hữu hợp đồng cho gọn code
     private void checkContractOwnership(Integer contractId) {
-        String phone = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
-        Contract contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
-
+        String phone = SecurityContextHolder.getContext().getAuthentication().getName();
+        Contract contract = contractRepository.findById(contractId).orElseThrow();
         if (!contract.getUser().getPhone().equals(phone)) {
             throw new RuntimeException("Bạn không có quyền thao tác trên hợp đồng này!");
         }
     }
 
     private Double resolveDepositFromRoom(Room room) {
-        if (room == null || room.getPrice() == null) {
-            return 0.0;
-        }
+        if (room == null || room.getPrice() == null) return 0.0;
         return room.getPrice();
     }
 
     @Override
     public ContractResponseDTO getContractDetail(Integer id) {
-        // 1. Tìm hợp đồng
         Contract contract = contractRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng ID: " + id));
-
-        // 2. Bảo mật: Chỉ chủ hợp đồng mới được xem
-        String identifier = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!contract.getUser().getPhone().equals(identifier)) {
-            throw new RuntimeException("Bạn không có quyền xem chi tiết hợp đồng này!");
-        }
-
-        // 3. Map thông tin hợp đồng
-        ContractResponseDTO dto = new ContractResponseDTO();
-        dto.setId(contract.getId());
-        dto.setRoomId(contract.getRoom().getId());
-        dto.setUserId(contract.getUser().getId());
-        dto.setUserFullName(contract.getUser().getFullName());
-        dto.setRoomName(contract.getRoom().getName());
-        dto.setStartDate(contract.getStartDate());
-        dto.setEndDate(contract.getEndDate());
-        dto.setDeposit(contract.getDeposit());
-        dto.setStatus(contract.getStatus());
-
-        // 4. Lấy danh sách dịch vụ từ Room (Giả sử Entity Room của bạn có List<Service> services)
-        if (contract.getRoom().getServices() != null) {
-            List<ServiceResponseDTO> serviceDTOs = contract.getRoom().getServices().stream()
-                    .map(s -> new ServiceResponseDTO(
-                            s.getId(),
-                            s.getName(),
-                            s.getDefaultPrice(),
-                            s.getUnit(),
-                            s.getIsMetered()
-                    ))
-                    .collect(Collectors.toList());
-            dto.setServices(serviceDTOs);
-        }
-
-        return dto;
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hợp đồng"));
+        return mapToResponseDTO(contract);
     }
 }

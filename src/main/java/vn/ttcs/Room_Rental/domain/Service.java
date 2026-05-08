@@ -1,12 +1,7 @@
 package vn.ttcs.Room_Rental.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "services")
@@ -27,6 +22,9 @@ public class Service {
     @JoinColumn(name = "room_id")
     private Room room;
 
+    // --- MẢNH GHÉP MỚI: Nối sang bảng trung gian để quản lý giá chốt ---
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
+    private List<ContractServiceDetail> contractDetails;
 
     public Integer getId() {
         return id;
@@ -68,12 +66,20 @@ public class Service {
         this.isMetered = isMetered;
     }
 
-    // --- GETTER/SETTER CHO ROOM ---
     public Room getRoom() {
         return room;
     }
 
     public void setRoom(Room room) {
         this.room = room;
+    }
+
+    // --- GETTER/SETTER CHO CONTRACT DETAILS ---
+    public List<ContractServiceDetail> getContractDetails() {
+        return contractDetails;
+    }
+
+    public void setContractDetails(List<ContractServiceDetail> contractDetails) {
+        this.contractDetails = contractDetails;
     }
 }

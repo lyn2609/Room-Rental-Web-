@@ -74,4 +74,10 @@ public class AdminContractController {
         contractService.addRoommateByAdmin(id, requestDTO);
         return ResponseEntity.ok(ApiResponse.ok("Admin đã thêm người ở ghép thành công (tự động duyệt)!"));
     }
+
+    @GetMapping("/{id}/appendices")
+    public ResponseEntity<List<ContractAppendixResponseDTO>> getContractAppendices(@PathVariable Integer id) {
+        // Admin có quyền xem tất cả, không cần check sở hữu
+        return ResponseEntity.ok(contractService.getContractAppendices(id));
+    }
 }

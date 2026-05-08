@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.ttcs.Room_Rental.domain.Roommate;
-import vn.ttcs.Room_Rental.domain.dto.ApiResponse;
-import vn.ttcs.Room_Rental.domain.dto.ContractResponseDTO;
-import vn.ttcs.Room_Rental.domain.dto.RoommateRequestDTO;
-import vn.ttcs.Room_Rental.domain.dto.RoommateResponseDTO;
+import vn.ttcs.Room_Rental.domain.dto.*;
 import vn.ttcs.Room_Rental.service.ContractService;
 
 import java.util.List;
@@ -59,5 +56,12 @@ public class ClientContractController {
     public ResponseEntity<ApiResponse<ContractResponseDTO>> getContractDetail(@PathVariable Integer id) {
         ContractResponseDTO detail = contractService.getContractDetail(id);
         return ResponseEntity.ok(ApiResponse.ok("Lấy chi tiết hợp đồng thành công", detail));
+    }
+
+    @GetMapping("/{id}/appendices")
+    public ResponseEntity<List<ContractAppendixResponseDTO>> getMyContractAppendices(@PathVariable Integer id) {
+        // Trong Service đã có logic check quyền sở hữu (nếu ông tích hợp)
+        // Hoặc ông có thể gọi chung hàm getContractAppendices
+        return ResponseEntity.ok(contractService.getContractAppendices(id));
     }
 }

@@ -12,6 +12,8 @@ public interface ContractRepository extends JpaRepository<Contract, Integer> {
 
     List<Contract> findByUserId(Integer userId); // Fix lỗi dòng 168
 
+    List<Contract> findByRoom_IdAndStatus(Integer roomId, String status);
+
     @Query("SELECT c FROM Contract c WHERE " +
             "(:status IS NULL OR c.status = :status) AND " +
             "(:roomId IS NULL OR c.room.id = :roomId) AND " +
