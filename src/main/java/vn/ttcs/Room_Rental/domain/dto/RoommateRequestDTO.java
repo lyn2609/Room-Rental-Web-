@@ -1,85 +1,60 @@
 package vn.ttcs.Room_Rental.domain.dto;
 
-public class RoomRequestDTO {
-    private String name;
-    private String area;
-    private String address;
-    private Double price;
-    private String status;
-    private String imageUrl;
-    private String shortDescription;
-    private String detailedDescription;
-    private Integer maxOccupants;
+public class RoommateRequestDTO {
+    private String fullName;
+    private String cccd;
+    private String phone;
+    private String gender;
+    private String hometown;
 
-    public String getName() {
-        return name;
+    public RoommateRequestDTO() {
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public RoommateRequestDTO(String fullName, String cccd, String phone, String gender, String hometown) {
+        this.fullName = fullName;
+        this.cccd = cccd;
+        this.phone = phone;
+        this.gender = gender;
+        this.hometown = hometown;
     }
 
-    public String getArea() {
-        return area;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setArea(String area) {
-        this.area = area;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
-    public String getAddress() {
-        return address;
+    public String getCccd() {
+        return cccd;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setCccd(String cccd) {
+        this.cccd = cccd;
     }
 
-    public Double getPrice() {
-        return price;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setPrice(Double price) {
-        this.price = price;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
-    public String getStatus() {
-        return status;
+    public String getGender() {
+        return gender;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getHometown() {
+        return hometown;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public String getShortDescription() {
-        return shortDescription;
-    }
-
-    public void setShortDescription(String shortDescription) {
-        this.shortDescription = shortDescription;
-    }
-
-    public String getDetailedDescription() {
-        return detailedDescription;
-    }
-
-    public void setDetailedDescription(String detailedDescription) {
-        this.detailedDescription = detailedDescription;
-    }
-
-    public Integer getMaxOccupants() {
-        return maxOccupants;
-    }
-
-    public void setMaxOccupants(Integer maxOccupants) {
-        this.maxOccupants = maxOccupants;
+    public void setHometown(String hometown) {
+        this.hometown = hometown;
     }
 }
