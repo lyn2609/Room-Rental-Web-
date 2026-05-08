@@ -1,19 +1,15 @@
 package vn.ttcs.Room_Rental.domain.dto;
 
-import java.util.List;
-
-public class RoomResponseDTO {
+public class RoommateResponseDTO {
     private Integer id;
-    private String name;
-    private String area;
-    private String address;
-    private Double price;
+    private String fullName;
+    private String cccd;
+    private String phone;
+    private String gender;
+    private String hometown;
     private String status;
-    private String imageUrl;
-    private String shortDescription;
-    private String detailedDescription;
-    private Integer maxOccupants;
-    private List<ServiceResponseDTO> services;
+    private String roomName;
+    private Integer contractId;
 
     public Integer getId() {
         return id;
@@ -23,36 +19,44 @@ public class RoomResponseDTO {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
-    public String getArea() {
-        return area;
+    public String getCccd() {
+        return cccd;
     }
 
-    public void setArea(String area) {
-        this.area = area;
+    public void setCccd(String cccd) {
+        this.cccd = cccd;
     }
 
-    public String getAddress() {
-        return address;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
-    public Double getPrice() {
-        return price;
+    public String getGender() {
+        return gender;
     }
 
-    public void setPrice(Double price) {
-        this.price = price;
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getHometown() {
+        return hometown;
+    }
+
+    public void setHometown(String hometown) {
+        this.hometown = hometown;
     }
 
     public String getStatus() {
@@ -63,43 +67,19 @@ public class RoomResponseDTO {
         this.status = status;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getRoomName() {
+        return roomName;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
     }
 
-    public String getShortDescription() {
-        return shortDescription;
+    public Integer getContractId() {
+        return contractId;
     }
 
-    public void setShortDescription(String shortDescription) {
-        this.shortDescription = shortDescription;
-    }
-
-    public String getDetailedDescription() {
-        return detailedDescription;
-    }
-
-    public void setDetailedDescription(String detailedDescription) {
-        this.detailedDescription = detailedDescription;
-    }
-
-    public Integer getMaxOccupants() {
-        return maxOccupants;
-    }
-
-    public void setMaxOccupants(Integer maxOccupants) {
-        this.maxOccupants = maxOccupants;
-    }
-
-    public List<ServiceResponseDTO> getServices() {
-        return services;
-    }
-
-    public void setServices(List<ServiceResponseDTO> services) {
-        this.services = services;
+    public void setContractId(Integer contractId) {
+        this.contractId = contractId;
     }
 }
