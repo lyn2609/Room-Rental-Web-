@@ -1,16 +1,15 @@
 package vn.ttcs.Room_Rental.domain.dto;
 
 public class RoomRequestDTO {
-    private String address;
     private String name;
     private String area;
+    private String address;
     private Double price;
     private String status;
-    private String description;
-
-    // --- Getter và Setter ---
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    private String imageUrl;
+    private String shortDescription;
+    private String detailedDescription;
+    private Integer maxOccupants;
 
     public String getName() {
         return name;
@@ -26,6 +25,14 @@ public class RoomRequestDTO {
 
     public void setArea(String area) {
         this.area = area;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public Double getPrice() {
@@ -44,11 +51,35 @@ public class RoomRequestDTO {
         this.status = status;
     }
 
-    public String getDescription() {
-        return description;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getShortDescription() {
+        return shortDescription;
+    }
+
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
+    }
+
+    public String getDetailedDescription() {
+        return detailedDescription;
+    }
+
+    public void setDetailedDescription(String detailedDescription) {
+        this.detailedDescription = detailedDescription;
+    }
+
+    public Integer getMaxOccupants() {
+        return maxOccupants;
+    }
+
+    public void setMaxOccupants(Integer maxOccupants) {
+        this.maxOccupants = maxOccupants;
     }
 }
