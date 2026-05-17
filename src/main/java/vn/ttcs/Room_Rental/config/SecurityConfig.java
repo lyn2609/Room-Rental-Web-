@@ -69,6 +69,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/rooms/**").permitAll()
                         .requestMatchers("/api/ai/**").permitAll()
 
+                        .requestMatchers("/api/v1/upload").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+
                         // 3. API dành riêng cho Client (Khách thuê)
                         // Vì CustomUserDetails dùng "ROLE_" + tên role, nên phải dùng hasRole
                         .requestMatchers("/api/client/**").hasRole("CLIENT")
