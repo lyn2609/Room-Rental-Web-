@@ -26,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import vn.ttcs.Room_Rental.config.VNPayConfig;
 import vn.ttcs.Room_Rental.domain.Contract;
+import vn.ttcs.Room_Rental.domain.ContractServiceDetail;
 import vn.ttcs.Room_Rental.domain.Invoice;
 import vn.ttcs.Room_Rental.domain.InvoiceDetail;
 import vn.ttcs.Room_Rental.domain.dto.GenerateInvoiceRequest;
@@ -36,7 +37,6 @@ import vn.ttcs.Room_Rental.domain.dto.UpdateInvoiceRequest;
 import vn.ttcs.Room_Rental.repository.ContractRepository;
 import vn.ttcs.Room_Rental.repository.InvoiceDetailRepository;
 import vn.ttcs.Room_Rental.repository.InvoiceRepository;
-import vn.ttcs.Room_Rental.repository.ServiceRepository;
 
 @Service
 public class InvoiceService {
@@ -45,7 +45,6 @@ public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
     private final InvoiceDetailRepository invoiceDetailRepository;
     private final ContractRepository contractRepository;
-    private final ServiceRepository serviceRepository;
 
     @Value("${vnpay.tmnCode}")
     private String vnpTmnCode;
@@ -73,12 +72,10 @@ public class InvoiceService {
 
     public InvoiceService(InvoiceRepository invoiceRepository,
                           InvoiceDetailRepository invoiceDetailRepository,
-                          ContractRepository contractRepository,
-                          ServiceRepository serviceRepository) {
+                          ContractRepository contractRepository) {
         this.invoiceRepository = invoiceRepository;
         this.invoiceDetailRepository = invoiceDetailRepository;
         this.contractRepository = contractRepository;
-        this.serviceRepository = serviceRepository;
     }
 
     // ==================== CLIENT ====================
@@ -170,8 +167,8 @@ public class InvoiceService {
             invoice.setStatus("UNPAID");
             invoice.setPaymentMethod("UNPAID");
 
-            List<vn.ttcs.Room_Rental.domain.Service> services =
-                    serviceRepository.findByRoom_Id(contract.getRoom().getId());
+            List<ContractServiceDetail> contractServices =
+                    contract.getServices() != null ? contract.getServices() : List.of();
             List<InvoiceDetail> details = buildInvoiceDetails(
                     invoice,
                     contract,
@@ -180,7 +177,7 @@ public class InvoiceService {
                     reading.getElectricNewIndex(),
                     reading.getWaterOldIndex(),
                     reading.getWaterNewIndex(),
-                    services
+                    contractServices
             );
 
             invoice.setTotalAmount(calculateTotalAmount(details));
@@ -219,8 +216,8 @@ public class InvoiceService {
         String month = invoice.getMonth();
         validateContractForInvoiceGeneration(contract, month);
 
-        List<vn.ttcs.Room_Rental.domain.Service> services =
-            serviceRepository.findByRoom_Id(contract.getRoom().getId());
+        List<ContractServiceDetail> contractServices =
+            contract.getServices() != null ? contract.getServices() : List.of();
 
         List<InvoiceDetail> details = buildInvoiceDetails(
             invoice,
@@ -230,7 +227,7 @@ public class InvoiceService {
             request.getElectricNewIndex(),
             request.getWaterOldIndex(),
             request.getWaterNewIndex(),
-            services
+            contractServices
         );
 
         invoice.setDueDate(request.getDueDate());
@@ -530,7 +527,7 @@ public class InvoiceService {
             Integer electricNewIndex,
             Integer waterOldIndex,
             Integer waterNewIndex,
-            List<vn.ttcs.Room_Rental.domain.Service> services) {
+            List<ContractServiceDetail> contractServices) {
         List<InvoiceDetail> details = new ArrayList<>();
 
         Double roomPriceValue = contract.getRoom().getPrice();
@@ -545,12 +542,13 @@ public class InvoiceService {
         rentDetail.setSubtotal(roomPrice);
         details.add(rentDetail);
 
-        for (vn.ttcs.Room_Rental.domain.Service service : services) {
+        for (ContractServiceDetail cs : contractServices) {
+            vn.ttcs.Room_Rental.domain.Service service = cs.getService();
             InvoiceDetail detail = new InvoiceDetail();
             detail.setInvoice(invoice);
             detail.setService(service);
             detail.setDescription(service.getName());
-            double unitPrice = getServicePrice(service);
+            double unitPrice = cs.getActualPrice() != null ? cs.getActualPrice() : getServicePrice(service);
             detail.setUnitPrice(unitPrice);
 
             double subtotal;
